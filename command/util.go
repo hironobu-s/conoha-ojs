@@ -44,7 +44,7 @@ func buildStorageUrl(endpointUrl string, paths ...string) (url *url.URL, err err
 
 	rawurl += "/" + strings.Join(paths, "/")
 
-	log.Infof("%v", rawurl)
+	log.Debug(rawurl)
 
 	return url.Parse(rawurl)
 }

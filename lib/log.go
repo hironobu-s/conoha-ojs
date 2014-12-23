@@ -21,10 +21,8 @@ func GetLogInstance() *logrus.Logger {
 		logrus.SetOutput(os.Stderr)
 
 		// ログレベルの設定
-		logrus.SetLevel(logrus.DebugLevel)
-		//logrus.SetLevel(logrus.PanicLevel)
-
 		instance = logrus.New()
+		instance.Level = logrus.InfoLevel
 		//instance.SetOutput(os.Stderr)
 	}
 	return instance

@@ -73,6 +73,7 @@ func (cmd *Download) Run(c *lib.Config) (exitCode int, err error) {
 }
 
 func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
+	log := lib.GetLogInstance()
 
 	// pathの末尾にワイルドカードがある場合はそれを処理
 	if strings.HasSuffix(path, "*") {
@@ -95,6 +96,8 @@ func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
 			if err != nil {
 				return err
 			}
+
+			log.Infof("%s download complete.", list[i])
 		}
 
 	} else {
@@ -107,6 +110,7 @@ func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
 		if err != nil {
 			return err
 		}
+		log.Infof("%s download complete.", path)
 	}
 
 	return nil

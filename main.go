@@ -44,7 +44,7 @@ func run() (exitCode int, err error) {
 
 	command_name := os.Args[1]
 
-	log.Infof("Command: \"%v\"", command_name)
+	log.Debugf("Command: \"%v\"", command_name)
 
 	if command_name == "auth" {
 		// 認証情報を更新(コマンドライン引数から認証情報を設定する)

@@ -118,7 +118,7 @@ func (cmd *Auth) CheckTokenIsExpired(c *lib.Config) error {
 	}
 
 	if !doUpdate {
-		log.Info("Using the cached token.")
+		log.Debug("Using the cached token.")
 		return nil
 	}
 
