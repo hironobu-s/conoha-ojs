@@ -4,41 +4,60 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
+
+	flag "github.com/ogier/pflag"
 )
 
 type Upload struct {
 	srcFiles      []string
 	destContainer string
 
+	contentType        string
+	defaultContentType string
+
 	*Command
 }
 
 func NewUpload() *Upload {
 	cmd := new(Upload)
+
+	// 規定のContent-typeを設定
+	cmd.defaultContentType = "application/octet-stream"
+
 	return cmd
 }
 
 func (cmd *Upload) parseFlags() error {
 
-	if len(os.Args) < 4 {
+	// コマンドライン引数の定義を追加
+	flag.StringVarP(&cmd.contentType, "content-type", "c", "", "Set Content-type")
+	os.Args = os.Args[1:]
+	flag.Parse()
+
+	if flag.NArg() < 2 {
 		msg := fmt.Sprintf(`Usage: %s upload <container> <file or directory>...
 
 Upload files or directories to a container.
 
 <container>          Name of container to upload.
 <file or directory>  Name of file or directory to upload.
+
+  -c, --content-type: Set Content-type. If not set, Content-type will be "application/octet-strem".
+
 `, COMMAND_NAME)
 		return errors.New(msg)
 	}
 
 	// アップロード先コンテナ
-	cmd.destContainer = os.Args[2]
+	cmd.destContainer = flag.Arg(0)
 
 	// アップロードするファイル
-	for i := 3; i < len(os.Args); i++ {
-		filename := os.Args[i]
+	for i := 1; i < flag.NArg(); i++ {
+		filename := flag.Arg(i)
 
 		_, err := os.Stat(filename)
 		if err != nil {
@@ -66,6 +85,23 @@ func (cmd *Upload) Run(c *lib.Config) error {
 	return nil
 }
 
+// Content-typeを決定する
+func (cmd *Upload) detectContentType(filename string) (contentType string) {
+
+	// 指定がある場合はそれを使う
+	if cmd.contentType != "" {
+		return cmd.contentType
+	}
+
+	ext := filepath.Ext(filename)
+
+	contentType = mime.TypeByExtension(ext)
+	if contentType == "" {
+		contentType = cmd.defaultContentType
+	}
+	return contentType
+}
+
 func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
 
 	// アップロードするファイルへのReaderを作成
@@ -80,14 +116,17 @@ func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
 		return err
 	}
 
-	// PUTリクエストを実行
+	// PUTリクエストを作成
 	req, err := http.NewRequest("PUT", uri.String(), file)
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-type", "text/plain")
+
+	contentType := cmd.detectContentType(filename)
+	req.Header.Set("Content-type", contentType)
 	req.Header.Set("X-Auth-Token", c.Token)
 
+	// リクエストを実行
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -100,6 +139,7 @@ func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
 	}
 
 	log := lib.GetLogInstance()
-	log.Infof("%s uploaded.", filename)
+	log.Infof("%s (%s) was uploaded.", filename, contentType)
+
 	return nil
 }
