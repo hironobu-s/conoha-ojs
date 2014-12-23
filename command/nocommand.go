@@ -3,10 +3,18 @@ package command
 import (
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
-	"os"
+	"io"
 )
 
 type Nocommand struct {
+	*Command
+}
+
+func NewNocommand(stdSteram io.Writer, errStream io.Writer) (cmd *Nocommand) {
+	cmd = &Nocommand{
+		Command: NewCommand(stdSteram, errStream),
+	}
+	return cmd
 }
 
 // コマンドライン引数を処理する
@@ -14,20 +22,15 @@ func (cmd *Nocommand) parseFlags() error {
 	return nil
 }
 
-func NewNocommand() *Nocommand {
-	cmd := new(Nocommand)
-	return cmd
-}
-
 // コマンドを実行して結果を出力する
 // 実行ステータスを数値で返す
-func (cmd *Nocommand) Run(cfg *lib.Config) error {
+func (cmd *Nocommand) Run(c *lib.Config) (exitCode int, err error) {
 	cmd.Usage()
-	return nil
+	return ExitCodeError, nil
 }
 
 func (cmd *Nocommand) Usage() {
-	fmt.Fprintf(os.Stderr, `Usage: %s COMMAND [OPTIONS]
+	fmt.Fprintf(cmd.errStream, `Usage: %s COMMAND [OPTIONS]
 
 A CLI-tool for ConoHa Object Storage.
 

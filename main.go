@@ -16,19 +16,20 @@ func (e commandNotFoundError) Error() string {
 }
 
 func main() {
-	if err := run(); err != nil {
+	exitCode, err := run()
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "ERROR: %v\n", err)
-		os.Exit(1)
 	}
-	os.Exit(0)
+	os.Exit(exitCode)
 }
 
-func run() error {
+func run() (exitCode int, err error) {
 	// log
 	log := lib.GetLogInstance()
 
-	// エラー
-	var err error
+	// 出力先
+	stdStream := os.Stdout
+	errStream := os.Stderr
 
 	// 設定を読み込む
 	c := lib.NewConfig()
@@ -36,8 +37,9 @@ func run() error {
 	// コマンドを実行
 	if len(os.Args) <= 1 {
 		// コマンドが未指定の場合は使用法を表示
-		n := command.NewNocommand()
-		return n.Run(c)
+		cmd := command.NewNocommand(stdStream, errStream)
+
+		return cmd.Run(c)
 	}
 
 	command_name := os.Args[1]
@@ -46,46 +48,47 @@ func run() error {
 
 	if command_name == "auth" {
 		// 認証情報を更新(コマンドライン引数から認証情報を設定する)
-		auth := command.NewAuth()
-		if err = auth.Run(c); err != nil {
-			return err
+		auth := command.NewAuth(stdStream, errStream)
+		exitCode, err = auth.Run(c)
+		if err != nil {
+			return exitCode, err
 		}
 
 	} else {
 		// 認証情報を更新
-		auth := command.NewAuth()
+		auth := command.NewAuth(stdStream, errStream)
 		if err = auth.CheckTokenIsExpired(c); err != nil {
-			return err
+			return 1, err
 		}
 
 		var cmd command.Commander
 		switch command_name {
 
 		case "list":
-			cmd = command.NewList()
+			cmd = command.NewList(stdStream, errStream)
 
 		case "download":
-			cmd = command.NewDownload()
+			cmd = command.NewDownload(stdStream, errStream)
 
 		case "upload":
-			cmd = command.NewUpload()
+			cmd = command.NewUpload(stdStream, errStream)
 
 		default:
 			// 定義されてないコマンド
-			cmd = command.NewNocommand()
+			cmd = command.NewNocommand(stdStream, errStream)
 		}
 
-		err := cmd.Run(c)
+		code, err := cmd.Run(c)
 		if err != nil {
-			return err
+			return code, err
 		}
 	}
 
 	// アカウント情報を書き出す
 	err = c.Save()
 	if err != nil {
-		return err
+		return command.ExitCodeError, err
 	}
 
-	return nil
+	return command.ExitCodeOK, nil
 }

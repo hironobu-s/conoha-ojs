@@ -20,28 +20,22 @@ type Download struct {
 	*Command
 }
 
-func NewDownload() *Download {
-	cmd := new(Download)
+func NewDownload(stdSteram io.Writer, errStream io.Writer) (cmd *Download) {
+	cmd = &Download{
+		Command: NewCommand(stdSteram, errStream),
+	}
 	return cmd
 }
 
 func (cmd *Download) parseFlags() error {
 	if len(os.Args) < 3 {
-		msg := fmt.Sprintf(`Usage: %s download <object_name> <dest_path>
-
-Download objects from a container.
-
-<object_name> Name of object to download.
-<dest_path>   (optional) Name of destination path. Default is current directory.
-`, COMMAND_NAME)
-		return errors.New(msg)
+		return errors.New("Not enough arguments")
 	}
 
 	// 取得するオブジェクト名
 	cmd.objectName = os.Args[2]
 
 	// 保存先のパス
-	var err error
 	if len(os.Args) == 4 {
 		cmd.destPath = os.Args[3]
 
@@ -49,21 +43,33 @@ Download objects from a container.
 		cmd.destPath = "."
 	}
 
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (cmd *Download) Run(c *lib.Config) error {
+func (cmd *Download) Usage() {
+	fmt.Fprintf(cmd.errStream, `Usage: %s download <object_name> <dest_path>
 
-	err := cmd.parseFlags()
+Download objects from a container.
+
+<object_name> Name of object to download.
+<dest_path>   (optional) Name of destination path. Default is current directory.
+`, COMMAND_NAME)
+}
+
+func (cmd *Download) Run(c *lib.Config) (exitCode int, err error) {
+
+	err = cmd.parseFlags()
 	if err != nil {
-		return err
+		cmd.Usage()
+		return ExitCodeParseFlagError, err
 	}
 
-	return cmd.DownloadObjects(c, cmd.objectName)
+	err = cmd.DownloadObjects(c, cmd.objectName)
+	if err == nil {
+		return ExitCodeOK, nil
+	} else {
+		return ExitCodeError, err
+	}
 }
 
 func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
@@ -73,7 +79,7 @@ func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
 		container := path[0 : len(path)-1]
 
 		// オブジェクトの一覧を取得
-		l := NewList()
+		l := &List{Command: cmd.Command}
 		list, err := l.List(c, container)
 		if err != nil {
 			return err

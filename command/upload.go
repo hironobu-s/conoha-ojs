@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	flag "github.com/ogier/pflag"
+	"io"
 )
 
 type Upload struct {
@@ -22,8 +23,10 @@ type Upload struct {
 	*Command
 }
 
-func NewUpload() *Upload {
-	cmd := new(Upload)
+func NewUpload(stdSteram io.Writer, errStream io.Writer) (cmd *Upload) {
+	cmd = &Upload{
+		Command: NewCommand(stdSteram, errStream),
+	}
 
 	// 規定のContent-typeを設定
 	cmd.defaultContentType = "application/octet-stream"
@@ -39,17 +42,7 @@ func (cmd *Upload) parseFlags() error {
 	flag.Parse()
 
 	if flag.NArg() < 2 {
-		msg := fmt.Sprintf(`Usage: %s upload <container> <file or directory>...
-
-Upload files or directories to a container.
-
-<container>          Name of container to upload.
-<file or directory>  Name of file or directory to upload.
-
-  -c, --content-type: Set Content-type. If not set, Content-type will be "application/octet-strem".
-
-`, COMMAND_NAME)
-		return errors.New(msg)
+		return errors.New("Not enough arguments.")
 	}
 
 	// アップロード先コンテナ
@@ -71,18 +64,34 @@ Upload files or directories to a container.
 	return nil
 }
 
-func (cmd *Upload) Run(c *lib.Config) error {
-	// コマンドライン引数を処理
-	err := cmd.parseFlags()
+func (cmd *Upload) Usage() {
+	fmt.Fprintf(cmd.errStream, `Usage: %s upload <container> <file or directory>...
+
+Upload files or directories to a container.
+
+<container>          Name of container to upload.
+<file or directory>  Name of file or directory to upload.
+
+  -c, --content-type: Set Content-type. If not set, Content-type will be "application/octet-strem".
+
+`, COMMAND_NAME)
+}
+
+func (cmd *Upload) Run(c *lib.Config) (exitCode int, err error) {
+	err = cmd.parseFlags()
 	if err != nil {
-		return err
+		cmd.Usage()
+		return ExitCodeParseFlagError, err
 	}
 
 	for _, filename := range cmd.srcFiles {
-		cmd.uploadObject(c, filename)
+		err = cmd.uploadObject(c, filename)
+		if err != nil {
+			return ExitCodeError, err
+		}
 	}
 
-	return nil
+	return ExitCodeOK, nil
 }
 
 // Content-typeを決定する

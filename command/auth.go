@@ -12,6 +12,7 @@ import (
 	"time"
 
 	flag "github.com/ogier/pflag"
+	"io"
 )
 
 const (
@@ -26,12 +27,11 @@ type Auth struct {
 	tenantname string
 }
 
-// 構造体を作成する
-// コマンドライン引数をパースするかを引数で決められる。
-func NewAuth() *Auth {
-	auth := new(Auth)
-
-	return auth
+func NewAuth(stdSteram io.Writer, errStream io.Writer) (cmd *Auth) {
+	cmd = &Auth{
+		Command: NewCommand(stdSteram, errStream),
+	}
+	return cmd
 }
 
 // コマンドライン引数を処理して返す
@@ -48,14 +48,7 @@ func (cmd *Auth) parseFlags() error {
 
 	// ユーザ名、パスワードを未指定の場合はUsageを表示して終了
 	if cmd.username == "" || cmd.password == "" {
-		msg := fmt.Sprintf(`Usage: %s auth [OPTIONS]
-
-Authenticate to ConoHa ObjectStorage.
-
-  -u, --api-username: API Username
-  -p: --api-password: API Password
-`, COMMAND_NAME)
-		return errors.New(msg)
+		return errors.New("Not enough arguments.")
 	}
 
 	// ユーザ名とテナント名は同じ
@@ -64,12 +57,22 @@ Authenticate to ConoHa ObjectStorage.
 	return nil
 }
 
+func (cmd *Auth) Usage() {
+	fmt.Fprintf(cmd.errStream, `Usage: %s auth [OPTIONS]
+
+Authenticate to ConoHa ObjectStorage.
+
+  -u, --api-username: API Username
+  -p: --api-password: API Password
+`, COMMAND_NAME)
+}
+
 // コマンドとして実行する
-func (cmd *Auth) Run(c *lib.Config) error {
+func (cmd *Auth) Run(c *lib.Config) (exitCode int, err error) {
 	// コマンドライン引数を処理
-	err := cmd.parseFlags()
+	err = cmd.parseFlags()
 	if err != nil {
-		return err
+		return ExitCodeParseFlagError, err
 	}
 
 	// *lib.Configに割り当て
@@ -77,7 +80,12 @@ func (cmd *Auth) Run(c *lib.Config) error {
 	c.ApiPassword = cmd.password
 	c.TenantName = cmd.tenantname
 
-	return cmd.doAuth(c, c.ApiUsername, c.ApiPassword, c.TenantName)
+	err = cmd.doAuth(c, c.ApiUsername, c.ApiPassword, c.TenantName)
+	if err == nil {
+		return ExitCodeOK, nil
+	} else {
+		return ExitCodeError, err
+	}
 }
 
 // トークンの有効期限のチェックを行う

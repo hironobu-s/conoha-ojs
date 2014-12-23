@@ -5,19 +5,22 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
+	"io"
 	"net/http"
 	"os"
 )
 
 type List struct {
-	// 表示するコンテナ名
+	// List表示するコンテナ名
 	containerName string
 
 	*Command
 }
 
-func NewList() *List {
-	cmd := new(List)
+func NewList(stdSteram io.Writer, errStream io.Writer) (cmd *List) {
+	cmd = &List{
+		Command: NewCommand(stdSteram, errStream),
+	}
 	return cmd
 }
 
@@ -30,51 +33,55 @@ func (cmd *List) parseFlags() error {
 		cmd.containerName = "/"
 
 	} else if len(os.Args) < 2 {
-		// 引数が足りない
-		msg := fmt.Sprintf(`Usage: %s list <container_or_object>
+		return errors.New("Not enough arguments.")
+
+	} else {
+		cmd.containerName = os.Args[2]
+	}
+
+	// 引数が足りない
+
+	return nil
+}
+
+func (cmd *List) Usage() {
+	fmt.Fprintf(cmd.errStream, `Usage: %s list <container_or_object>
 
 List container or object.
 
 <container_or_object> Name of container or object.
 
 `, COMMAND_NAME)
-
-		return errors.New(msg)
-
-	} else {
-		cmd.containerName = os.Args[2]
-	}
-
-	return nil
 }
 
 // コマンドを実行する
-func (cmd *List) Run(cfg *lib.Config) (err error) {
+func (cmd *List) Run(c *lib.Config) (exitCode int, err error) {
 
 	err = cmd.parseFlags()
 	if err != nil {
-		return err
+		cmd.Usage()
+		return ExitCodeParseFlagError, err
 	}
 
-	list, err := cmd.List(cfg, cmd.containerName)
+	list, err := cmd.List(c, cmd.containerName)
 	if err != nil {
-		return err
+		return ExitCodeError, err
 	}
 
 	for _, item := range list {
-		fmt.Fprintf(os.Stdout, "%s\n", item)
+		fmt.Fprintf(cmd.stdStream, "%s\n", item)
 	}
 
-	return nil
+	return ExitCodeOK, nil
 }
 
 //  コンテナやオブジェクトを取得のリストを返す
-func (cmd *List) List(cfg *lib.Config, container string) (objects []string, err error) {
+func (cmd *List) List(c *lib.Config, container string) (objects []string, err error) {
 
 	// URLを検証する
-	// rawurl := cfg.EndPointUrl + "/" + neturl.QueryEscape(container)
+	// rawurl := c.EndPointUrl + "/" + neturl.QueryEscape(container)
 	// url, err := neturl.ParseRequestURI(rawurl)
-	url, err := buildStorageUrl(cfg.EndPointUrl, container)
+	url, err := buildStorageUrl(c.EndPointUrl, container)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +95,7 @@ func (cmd *List) List(cfg *lib.Config, container string) (objects []string, err 
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("X-Auth-Token", cfg.Token)
+	req.Header.Set("X-Auth-Token", c.Token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
