@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 
 	flag "github.com/ogier/pflag"
-	"io"
 )
 
 type Upload struct {
@@ -23,45 +22,46 @@ type Upload struct {
 	*Command
 }
 
-func NewUpload(stdSteram io.Writer, errStream io.Writer) (cmd *Upload) {
-	cmd = &Upload{
-		Command: NewCommand(stdSteram, errStream),
-	}
+func (cmd *Upload) parseFlags() (exitCode int, err error) {
 
-	// 規定のContent-typeを設定
-	cmd.defaultContentType = "application/octet-stream"
+	var showUsage bool
 
-	return cmd
-}
-
-func (cmd *Upload) parseFlags() error {
+	fs := flag.NewFlagSet("conoha-ojs-upload", flag.ContinueOnError)
 
 	// コマンドライン引数の定義を追加
-	flag.StringVarP(&cmd.contentType, "content-type", "c", "", "Set Content-type")
-	os.Args = os.Args[1:]
-	flag.Parse()
+	fs.BoolVarP(&showUsage, "help", "h", false, "Print usage.")
+	fs.StringVarP(&cmd.contentType, "content-type", "c", "", "Set Content-type")
 
-	if flag.NArg() < 2 {
-		return errors.New("Not enough arguments.")
+	err = fs.Parse(os.Args[2:])
+	if err != nil {
+		return ExitCodeParseFlagError, err
+	}
+
+	if showUsage {
+		return ExitCodeUsage, nil
+	}
+
+	if fs.NArg() < 2 {
+		return ExitCodeParseFlagError, errors.New("Not enough arguments.")
 	}
 
 	// アップロード先コンテナ
-	cmd.destContainer = flag.Arg(0)
+	cmd.destContainer = fs.Arg(0)
 
 	// アップロードするファイル
-	for i := 1; i < flag.NArg(); i++ {
-		filename := flag.Arg(i)
+	for i := 1; i < fs.NArg(); i++ {
+		filename := fs.Arg(i)
 
 		_, err := os.Stat(filename)
 		if err != nil {
 			msg := fmt.Sprintf("File \"%s\" not found.", filename)
-			return errors.New(msg)
+			return ExitCodeError, errors.New(msg)
 		}
 
 		cmd.srcFiles = append(cmd.srcFiles, filename)
 	}
 
-	return nil
+	return ExitCodeOK, nil
 }
 
 func (cmd *Upload) Usage() {
@@ -74,18 +74,22 @@ Upload files or directories to a container.
 
   -c, --content-type: Set Content-type. If not set, Content-type will be "application/octet-strem".
 
-`, COMMAND_NAME)
+`, lib.COMMAND_NAME)
 }
 
-func (cmd *Upload) Run(c *lib.Config) (exitCode int, err error) {
-	err = cmd.parseFlags()
+func (cmd *Upload) Run() (exitCode int, err error) {
+	exitCode, err = cmd.parseFlags()
 	if err != nil {
+		return exitCode, err
+	}
+
+	if exitCode == ExitCodeUsage {
 		cmd.Usage()
-		return ExitCodeParseFlagError, err
+		return exitCode, nil
 	}
 
 	for _, filename := range cmd.srcFiles {
-		err = cmd.uploadObject(c, filename)
+		err = cmd.uploadObject(filename)
 		if err != nil {
 			return ExitCodeError, err
 		}
@@ -111,7 +115,7 @@ func (cmd *Upload) detectContentType(filename string) (contentType string) {
 	return contentType
 }
 
-func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
+func (cmd *Upload) uploadObject(filename string) (err error) {
 
 	// アップロードするファイルへのReaderを作成
 	file, err := os.OpenFile(filename, os.O_RDONLY, 0600)
@@ -120,7 +124,7 @@ func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
 	}
 
 	// アップロード先のURIを準備
-	uri, err := buildStorageUrl(c.EndPointUrl, cmd.destContainer, filename)
+	uri, err := buildStorageUrl(cmd.config.EndPointUrl, cmd.destContainer, filename)
 	if err != nil {
 		return err
 	}
@@ -133,7 +137,7 @@ func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
 
 	contentType := cmd.detectContentType(filename)
 	req.Header.Set("Content-type", contentType)
-	req.Header.Set("X-Auth-Token", c.Token)
+	req.Header.Set("X-Auth-Token", cmd.config.Token)
 
 	// リクエストを実行
 	client := &http.Client{}
@@ -148,7 +152,7 @@ func (cmd *Upload) uploadObject(c *lib.Config, filename string) (err error) {
 	}
 
 	log := lib.GetLogInstance()
-	log.Infof("%s (%s) was uploaded.", filename, contentType)
+	log.Infof("%s (content-type: %s) was uploaded.", filename, contentType)
 
 	return nil
 }

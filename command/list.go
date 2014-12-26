@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
-	"io"
+	flag "github.com/ogier/pflag"
 	"net/http"
 	"os"
 )
@@ -17,31 +17,35 @@ type List struct {
 	*Command
 }
 
-func NewList(stdSteram io.Writer, errStream io.Writer) (cmd *List) {
-	cmd = &List{
-		Command: NewCommand(stdSteram, errStream),
-	}
-	return cmd
-}
-
 // コマンドライン引数を処理して、一覧表示するコンテナ名を返す
 // 引数が省略された場合はルートを決め打ちする
-func (cmd *List) parseFlags() error {
+func (cmd *List) parseFlags() (exitCode int, err error) {
+
+	var showUsage bool
+	fs := flag.NewFlagSet("conoha-ojs-list", flag.ContinueOnError)
+	fs.BoolVarP(&showUsage, "help", "h", false, "Print usage.")
+
+	err = fs.Parse(os.Args[2:])
+	if err != nil {
+		return ExitCodeParseFlagError, err
+	}
+
+	if showUsage {
+		return ExitCodeUsage, nil
+	}
 
 	if len(os.Args) == 2 {
 		// コンテナ名が指定されなかったときはルートを決め打ちする
 		cmd.containerName = "/"
 
 	} else if len(os.Args) < 2 {
-		return errors.New("Not enough arguments.")
+		return ExitCodeParseFlagError, errors.New("Not enough arguments.")
 
 	} else {
 		cmd.containerName = os.Args[2]
 	}
 
-	// 引数が足りない
-
-	return nil
+	return ExitCodeOK, nil
 }
 
 func (cmd *List) Usage() {
@@ -51,19 +55,23 @@ List container or object.
 
 <container_or_object> Name of container or object.
 
-`, COMMAND_NAME)
+`, lib.COMMAND_NAME)
 }
 
 // コマンドを実行する
-func (cmd *List) Run(c *lib.Config) (exitCode int, err error) {
+func (cmd *List) Run() (exitCode int, err error) {
 
-	err = cmd.parseFlags()
+	exitCode, err = cmd.parseFlags()
 	if err != nil {
-		cmd.Usage()
 		return ExitCodeParseFlagError, err
 	}
 
-	list, err := cmd.List(c, cmd.containerName)
+	if exitCode == ExitCodeUsage {
+		cmd.Usage()
+		return exitCode, nil
+	}
+
+	list, err := cmd.List(cmd.containerName)
 	if err != nil {
 		return ExitCodeError, err
 	}
@@ -76,12 +84,12 @@ func (cmd *List) Run(c *lib.Config) (exitCode int, err error) {
 }
 
 //  コンテナやオブジェクトを取得のリストを返す
-func (cmd *List) List(c *lib.Config, container string) (objects []string, err error) {
+func (cmd *List) List(container string) (objects []string, err error) {
 
 	// URLを検証する
 	// rawurl := c.EndPointUrl + "/" + neturl.QueryEscape(container)
 	// url, err := neturl.ParseRequestURI(rawurl)
-	url, err := buildStorageUrl(c.EndPointUrl, container)
+	url, err := buildStorageUrl(cmd.config.EndPointUrl, container)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +103,7 @@ func (cmd *List) List(c *lib.Config, container string) (objects []string, err er
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("X-Auth-Token", c.Token)
+	req.Header.Set("X-Auth-Token", cmd.config.Token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

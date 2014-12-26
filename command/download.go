@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
+	flag "github.com/ogier/pflag"
 	"io"
 	"net/http"
 	"net/url"
@@ -20,16 +21,24 @@ type Download struct {
 	*Command
 }
 
-func NewDownload(stdSteram io.Writer, errStream io.Writer) (cmd *Download) {
-	cmd = &Download{
-		Command: NewCommand(stdSteram, errStream),
-	}
-	return cmd
-}
+func (cmd *Download) parseFlags() (exitCode int, err error) {
 
-func (cmd *Download) parseFlags() error {
+	var showUsage bool
+
+	fs := flag.NewFlagSet("conoha-ojs-download", flag.ContinueOnError)
+	fs.BoolVarP(&showUsage, "help", "h", false, "Print usage.")
+
+	err = fs.Parse(os.Args[2:])
+	if err != nil {
+		return ExitCodeParseFlagError, err
+	}
+
+	if showUsage {
+		return ExitCodeUsage, nil
+	}
+
 	if len(os.Args) < 3 {
-		return errors.New("Not enough arguments")
+		return ExitCodeParseFlagError, errors.New("Not enough arguments.")
 	}
 
 	// 取得するオブジェクト名
@@ -43,7 +52,7 @@ func (cmd *Download) parseFlags() error {
 		cmd.destPath = "."
 	}
 
-	return nil
+	return ExitCodeOK, nil
 }
 
 func (cmd *Download) Usage() {
@@ -53,18 +62,22 @@ Download objects from a container.
 
 <object_name> Name of object to download.
 <dest_path>   (optional) Name of destination path. Default is current directory.
-`, COMMAND_NAME)
+`, lib.COMMAND_NAME)
 }
 
-func (cmd *Download) Run(c *lib.Config) (exitCode int, err error) {
+func (cmd *Download) Run() (exitCode int, err error) {
 
-	err = cmd.parseFlags()
+	exitCode, err = cmd.parseFlags()
 	if err != nil {
-		cmd.Usage()
-		return ExitCodeParseFlagError, err
+		return exitCode, err
 	}
 
-	err = cmd.DownloadObjects(c, cmd.objectName)
+	if exitCode == ExitCodeUsage {
+		cmd.Usage()
+		return exitCode, nil
+	}
+
+	err = cmd.DownloadObjects(cmd.objectName)
 	if err == nil {
 		return ExitCodeOK, nil
 	} else {
@@ -72,7 +85,7 @@ func (cmd *Download) Run(c *lib.Config) (exitCode int, err error) {
 	}
 }
 
-func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
+func (cmd *Download) DownloadObjects(path string) error {
 	log := lib.GetLogInstance()
 
 	// pathの末尾にワイルドカードがある場合はそれを処理
@@ -81,18 +94,18 @@ func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
 
 		// オブジェクトの一覧を取得
 		l := &List{Command: cmd.Command}
-		list, err := l.List(c, container)
+		list, err := l.List(container)
 		if err != nil {
 			return err
 		}
 
 		for i := 0; i < len(list); i++ {
-			u, err := buildStorageUrl(c.EndPointUrl, container, list[i])
+			u, err := buildStorageUrl(cmd.config.EndPointUrl, container, list[i])
 			if err != nil {
 				return err
 			}
 
-			err = cmd.downloadObject(c, u)
+			err = cmd.downloadObject(u)
 			if err != nil {
 				return err
 			}
@@ -101,12 +114,12 @@ func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
 		}
 
 	} else {
-		u, err := buildStorageUrl(c.EndPointUrl, path)
+		u, err := buildStorageUrl(cmd.config.EndPointUrl, path)
 		if err != nil {
 			return err
 		}
 
-		err = cmd.downloadObject(c, u)
+		err = cmd.downloadObject(u)
 		if err != nil {
 			return err
 		}
@@ -116,7 +129,7 @@ func (cmd *Download) DownloadObjects(c *lib.Config, path string) error {
 	return nil
 }
 
-func (cmd *Download) downloadObject(c *lib.Config, u *url.URL) error {
+func (cmd *Download) downloadObject(u *url.URL) error {
 
 	req, err := http.NewRequest(
 		"GET",
@@ -126,7 +139,7 @@ func (cmd *Download) downloadObject(c *lib.Config, u *url.URL) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("X-Auth-Token", c.Token)
+	req.Header.Set("X-Auth-Token", cmd.config.Token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

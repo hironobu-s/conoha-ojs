@@ -22,7 +22,7 @@ func GetLogInstance() *logrus.Logger {
 
 		// ログレベルの設定
 		instance = logrus.New()
-		instance.Level = logrus.InfoLevel
+		instance.Level = logrus.DebugLevel
 		//instance.SetOutput(os.Stderr)
 	}
 	return instance

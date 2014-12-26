@@ -3,39 +3,57 @@ package command
 import (
 	"github.com/hironobu-s/conoha-ojs/lib"
 	"io"
-	"os"
 )
 
 const (
 	ExitCodeOK = iota
 	ExitCodeError
-	ExitCodeParseFlagError
-
-	COMMAND_NAME = "conoha-ojs"
+	ExitCodeParseFlagError // 引数解析に失敗
+	ExitCodeUsage          // Usageを表示
 )
 
 type Commander interface {
 
-	// コマンドライン引数を処理してmapで返す
-	parseFlags() error
+	// コマンドライン引数を処理する
+	parseFlags() (exitCode int, err error)
 
 	// ヘルプを表示する
 	Usage()
 
 	// コマンドを実行して結果を出力する
 	// 実行ステータスを数値で返す
-	Run(c *lib.Config) (exitCode int, err error)
+	Run() (exitCode int, err error)
 }
 
 type Command struct {
+	// 設定
+	config *lib.Config
+
 	// 出力先
-	stdStream, errStream io.Writer
+	stdStream io.Writer
+	errStream io.Writer
 }
 
-func NewCommand(stdSteram io.Writer, errStream io.Writer) (cmd *Command) {
-	cmd = &Command{
-		stdStream: os.Stdout,
-		errStream: os.Stderr,
+// コマンドを作成して返す
+func NewCommand(action string, config *lib.Config, stdStream io.Writer, errStream io.Writer) (cmd Commander) {
+
+	command := &Command{
+		config:    config,
+		stdStream: stdStream,
+		errStream: errStream,
+	}
+
+	switch action {
+	case "list":
+		cmd = &List{Command: command}
+	case "auth":
+		cmd = &Auth{Command: command}
+	case "download":
+		cmd = &Download{Command: command}
+	case "upload":
+		cmd = &Upload{Command: command}
+	default:
+		cmd = &Nocommand{Command: command}
 	}
 
 	return cmd

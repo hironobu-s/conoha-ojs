@@ -9,7 +9,9 @@ import (
 )
 
 const (
-	CONFIGFILE = ".conoha-ojs"
+	CONFIGFILE   = ".conoha-ojs"
+	COMMAND_NAME = "conoha-ojs"
+	VERSION      = "0.1"
 )
 
 // コンフィグ

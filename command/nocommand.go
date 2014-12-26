@@ -3,30 +3,48 @@ package command
 import (
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
-	"io"
+	flag "github.com/ogier/pflag"
+	"os"
 )
 
 type Nocommand struct {
 	*Command
 }
 
-func NewNocommand(stdSteram io.Writer, errStream io.Writer) (cmd *Nocommand) {
-	cmd = &Nocommand{
-		Command: NewCommand(stdSteram, errStream),
+// コマンドライン引数を処理する
+func (cmd *Nocommand) parseFlags() (exitCode int, err error) {
+	var showVersion bool
+	fs := flag.NewFlagSet("conoha-ojs-nocommand", flag.ContinueOnError)
+	fs.BoolVar(&showVersion, "version", false, "Print version.")
+
+	err = fs.Parse(os.Args[1:])
+	if err != nil {
+		return ExitCodeParseFlagError, err
 	}
-	return cmd
+
+	if showVersion {
+		return ExitCodeUsage, nil
+	}
+	return ExitCodeOK, nil
 }
 
-// コマンドライン引数を処理する
-func (cmd *Nocommand) parseFlags() error {
-	return nil
+func (cmd *Nocommand) Version() {
+	fmt.Fprintf(cmd.errStream, "Version: %s\n", lib.VERSION)
 }
 
 // コマンドを実行して結果を出力する
 // 実行ステータスを数値で返す
-func (cmd *Nocommand) Run(c *lib.Config) (exitCode int, err error) {
-	cmd.Usage()
-	return ExitCodeError, nil
+func (cmd *Nocommand) Run() (exitCode int, err error) {
+	exitCode, err = cmd.parseFlags()
+
+	if exitCode == ExitCodeUsage {
+		cmd.Version()
+		return exitCode, nil
+
+	} else {
+		cmd.Usage()
+		return ExitCodeOK, nil
+	}
 }
 
 func (cmd *Nocommand) Usage() {
@@ -40,5 +58,5 @@ Commands:
   upload    Upload files or directories to a container.
   download  Download objects from a container.
 
-`, COMMAND_NAME)
+`, lib.COMMAND_NAME)
 }

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	flag "github.com/ogier/pflag"
-	"io"
 )
 
 const (
@@ -27,34 +26,35 @@ type Auth struct {
 	tenantname string
 }
 
-func NewAuth(stdSteram io.Writer, errStream io.Writer) (cmd *Auth) {
-	cmd = &Auth{
-		Command: NewCommand(stdSteram, errStream),
-	}
-	return cmd
-}
-
 // コマンドライン引数を処理して返す
-func (cmd *Auth) parseFlags() error {
+func (cmd *Auth) parseFlags() (exitCode int, err error) {
+
+	var showUsage bool
+	fs := flag.NewFlagSet("conoha-ojs-auth", flag.ContinueOnError)
 
 	// コマンドライン引数の定義を追加
-	flag.StringVarP(&cmd.username, "api-username", "u", "", "API Username")
-	flag.StringVarP(&cmd.password, "api-password", "p", "", "API Password")
+	fs.BoolVarP(&showUsage, "help", "h", false, "Print usage.")
+	fs.StringVarP(&cmd.username, "api-username", "u", "", "API Username")
+	fs.StringVarP(&cmd.password, "api-password", "p", "", "API Password")
 
-	// // コマンドライン引数をパース
-	// //fs.Parse(os.Args[2:])
-	os.Args = os.Args[1:]
-	flag.Parse()
+	err = fs.Parse(os.Args[2:])
+	if err != nil {
+		return ExitCodeParseFlagError, err
+	}
+
+	if showUsage {
+		return ExitCodeUsage, nil
+	}
 
 	// ユーザ名、パスワードを未指定の場合はUsageを表示して終了
 	if cmd.username == "" || cmd.password == "" {
-		return errors.New("Not enough arguments.")
+		return ExitCodeUsage, nil
 	}
 
 	// ユーザ名とテナント名は同じ
 	cmd.tenantname = cmd.username
 
-	return nil
+	return ExitCodeOK, nil
 }
 
 func (cmd *Auth) Usage() {
@@ -64,18 +64,22 @@ Authenticate to ConoHa ObjectStorage.
 
   -u, --api-username: API Username
   -p: --api-password: API Password
-`, COMMAND_NAME)
+`, lib.COMMAND_NAME)
 }
 
-// コマンドとして実行する
-func (cmd *Auth) Run(c *lib.Config) (exitCode int, err error) {
-	// コマンドライン引数を処理
-	err = cmd.parseFlags()
+func (cmd *Auth) Run() (exitCode int, err error) {
+	exitCode, err = cmd.parseFlags()
 	if err != nil {
-		return ExitCodeParseFlagError, err
+		return exitCode, err
+	}
+
+	if exitCode == ExitCodeUsage {
+		cmd.Usage()
+		return exitCode, nil
 	}
 
 	// *lib.Configに割り当て
+	var c = cmd.config
 	c.ApiUsername = cmd.username
 	c.ApiPassword = cmd.password
 	c.TenantName = cmd.tenantname
