@@ -62,13 +62,9 @@ List container or object.
 func (cmd *List) Run() (exitCode int, err error) {
 
 	exitCode, err = cmd.parseFlags()
-	if err != nil {
-		return ExitCodeParseFlagError, err
-	}
-
-	if exitCode == ExitCodeUsage {
+	if err != nil || exitCode == ExitCodeUsage {
 		cmd.Usage()
-		return exitCode, nil
+		return exitCode, err
 	}
 
 	list, err := cmd.List(cmd.containerName)

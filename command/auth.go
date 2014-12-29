@@ -64,18 +64,15 @@ Authenticate to ConoHa ObjectStorage.
 
   -u, --api-username: API Username
   -p: --api-password: API Password
+
 `, lib.COMMAND_NAME)
 }
 
 func (cmd *Auth) Run() (exitCode int, err error) {
 	exitCode, err = cmd.parseFlags()
-	if err != nil {
-		return exitCode, err
-	}
-
-	if exitCode == ExitCodeUsage {
+	if err != nil || exitCode == ExitCodeUsage {
 		cmd.Usage()
-		return exitCode, nil
+		return exitCode, err
 	}
 
 	// *lib.Configに割り当て

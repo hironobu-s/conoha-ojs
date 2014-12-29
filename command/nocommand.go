@@ -37,14 +37,8 @@ func (cmd *Nocommand) Version() {
 func (cmd *Nocommand) Run() (exitCode int, err error) {
 	exitCode, err = cmd.parseFlags()
 
-	if exitCode == ExitCodeUsage {
-		cmd.Version()
-		return exitCode, nil
-
-	} else {
-		cmd.Usage()
-		return ExitCodeOK, nil
-	}
+	cmd.Usage()
+	return exitCode, err
 }
 
 func (cmd *Nocommand) Usage() {

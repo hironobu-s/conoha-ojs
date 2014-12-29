@@ -62,19 +62,16 @@ Download objects from a container.
 
 <object_name> Name of object to download.
 <dest_path>   (optional) Name of destination path. Default is current directory.
+
 `, lib.COMMAND_NAME)
 }
 
 func (cmd *Download) Run() (exitCode int, err error) {
 
 	exitCode, err = cmd.parseFlags()
-	if err != nil {
-		return exitCode, err
-	}
-
-	if exitCode == ExitCodeUsage {
+	if err != nil || exitCode == ExitCodeUsage {
 		cmd.Usage()
-		return exitCode, nil
+		return exitCode, err
 	}
 
 	err = cmd.DownloadObjects(cmd.objectName)
