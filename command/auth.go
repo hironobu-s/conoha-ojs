@@ -48,7 +48,7 @@ func (cmd *Auth) parseFlags() (exitCode int, err error) {
 
 	// ユーザ名、パスワードを未指定の場合はUsageを表示して終了
 	if cmd.username == "" || cmd.password == "" {
-		return ExitCodeUsage, nil
+		return ExitCodeParseFlagError, errors.New("Not enough arguments.")
 	}
 
 	// ユーザ名とテナント名は同じ
