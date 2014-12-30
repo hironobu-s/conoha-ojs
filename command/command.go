@@ -52,6 +52,8 @@ func NewCommand(action string, config *lib.Config, stdStream io.Writer, errStrea
 		cmd = &Download{Command: command}
 	case "upload":
 		cmd = &Upload{Command: command}
+	case "delete":
+		cmd = &Delete{Command: command}
 	default:
 		cmd = &Nocommand{Command: command}
 	}

@@ -51,6 +51,8 @@ Commands:
   list      List a container or objects within a container.
   upload    Upload files or directories to a container.
   download  Download objects from a container.
+  delete    Delete a container or objects within a container.
+  post      Update meta datas for the container.
 
 `, lib.COMMAND_NAME)
 }
