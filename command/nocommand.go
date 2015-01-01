@@ -49,6 +49,7 @@ A CLI-tool for ConoHa Object Storage.
 Commands: 
   auth      Authenticate a user.
   list      List a container or objects within a container.
+  stat      Show informations for container or object.
   upload    Upload files or directories to a container.
   download  Download objects from a container.
   delete    Delete a container or objects within a container.
