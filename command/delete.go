@@ -112,7 +112,11 @@ func (cmd *Delete) deleteObject(u *url.URL) error {
 		return errors.New("Server returned 409 error code. (Did you try to delete the container containing objects?)")
 
 	case resp.StatusCode >= 400:
-		return errors.New("Return error code from Server.")
+		msg := fmt.Sprintf("Return %d status code from the server with message. [%s].",
+			resp.StatusCode,
+			extractErrorMessage(resp.Body),
+		)
+		return errors.New(msg)
 	}
 
 	return nil

@@ -112,8 +112,13 @@ func (cmd *List) List(container string) (objects []string, err error) {
 	switch {
 	case resp.StatusCode == 404:
 		return nil, errors.New("Object or Container was not found.")
+
 	case resp.StatusCode >= 400:
-		return nil, errors.New("Return error code from Server.")
+		msg := fmt.Sprintf("Return %d status code from the server with message. [%s].",
+			resp.StatusCode,
+			extractErrorMessage(resp.Body),
+		)
+		return nil, errors.New(msg)
 	}
 
 	scanner := bufio.NewScanner(resp.Body)

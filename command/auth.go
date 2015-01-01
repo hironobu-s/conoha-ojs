@@ -165,6 +165,15 @@ func (cmd *Auth) doAuth(c *lib.Config, username string, password string, tenantn
 	}
 	defer resp.Body.Close()
 
+	switch {
+	case resp.StatusCode >= 400:
+		msg := fmt.Sprintf("Return %d status code from the server with message. [%s].",
+			resp.StatusCode,
+			extractErrorMessage(resp.Body),
+		)
+		return errors.New(msg)
+	}
+
 	strjson, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err

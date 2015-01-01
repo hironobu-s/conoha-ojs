@@ -149,6 +149,13 @@ func (cmd *Upload) uploadObject(filename string) (err error) {
 	switch {
 	case resp.StatusCode == 404:
 		return errors.New("Container was not found.")
+
+	case resp.StatusCode >= 400:
+		msg := fmt.Sprintf("Return %d status code from the server with message. [%s].",
+			resp.StatusCode,
+			extractErrorMessage(resp.Body),
+		)
+		return errors.New(msg)
 	}
 
 	log := lib.GetLogInstance()

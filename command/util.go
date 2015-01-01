@@ -2,6 +2,8 @@ package command
 
 import (
 	"github.com/hironobu-s/conoha-ojs/lib"
+	"io"
+	"io/ioutil"
 	"net/url"
 	"path/filepath"
 	"strings"
@@ -47,4 +49,24 @@ func buildStorageUrl(endpointUrl string, paths ...string) (url *url.URL, err err
 	log.Debug(rawurl)
 
 	return url.Parse(rawurl)
+}
+
+// オブジェクトストレージが返すエラーレスポンスのHTMLデータからメッセージ部分を抜き出す
+// メッセージを抜き出せなかった場合は空文字を返す
+func extractErrorMessage(Body io.ReadCloser) string {
+
+	b, _ := ioutil.ReadAll(Body)
+	rawhtml := string(b)
+
+	pb := strings.Index(rawhtml, "<p>")
+	if pb < 0 {
+		return ""
+	}
+
+	pe := strings.Index(rawhtml, "</p>")
+	if pe < 0 {
+		return ""
+	}
+
+	return rawhtml[pb+3 : pe]
 }

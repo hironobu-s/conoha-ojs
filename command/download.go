@@ -149,8 +149,13 @@ func (cmd *Download) downloadObject(u *url.URL) error {
 	switch {
 	case resp.StatusCode == 404:
 		return errors.New("Object was not found.")
+
 	case resp.StatusCode >= 400:
-		return errors.New("Return error code from Server.")
+		msg := fmt.Sprintf("Return %d status code from the server with message. [%s].",
+			resp.StatusCode,
+			extractErrorMessage(resp.Body),
+		)
+		return errors.New(msg)
 	}
 
 	// オブジェクト名と同じファイルをローカルに作成してBodyを書き込む
