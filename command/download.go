@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
-	"github.com/k0kubun/pp"
 	flag "github.com/ogier/pflag"
 	"io"
 	"net/http"
