@@ -1,6 +1,6 @@
-# conoha-ojs - A CLI-tool for ConoHa Object Storage.
+# CLI-tool for ConoHa Object Storage.
 
-conoha-ojsは[ConoHaオブジェクトストレージ](https://www.conoha.jp/)を操作するためのCLIツールです。
+[ConoHaオブジェクトストレージ](https://www.conoha.jp/)を操作するためのCLIツールです。
 オブジェクトストレージのAPIを使用するので、あらかじめコントロールパネルから、APIユーザを作成しておいてください。
 
 
