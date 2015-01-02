@@ -60,12 +60,12 @@ func extractErrorMessage(Body io.ReadCloser) string {
 
 	pb := strings.Index(rawhtml, "<p>")
 	if pb < 0 {
-		return ""
+		return rawhtml
 	}
 
 	pe := strings.Index(rawhtml, "</p>")
 	if pe < 0 {
-		return ""
+		return rawhtml
 	}
 
 	return rawhtml[pb+3 : pe]
