@@ -79,11 +79,7 @@ Upload files or directories to a container.
 
 func (cmd *Upload) Run() (exitCode int, err error) {
 	exitCode, err = cmd.parseFlags()
-	if err != nil {
-		return exitCode, err
-	}
-
-	if exitCode == ExitCodeUsage {
+	if err != nil || exitCode == ExitCodeUsage {
 		cmd.Usage()
 		return exitCode, nil
 	}
