@@ -59,7 +59,7 @@ func (cmd *Delete) Run() (exitCode int, err error) {
 		return exitCode, err
 	}
 
-	err = cmd.DeleteObject(cmd.objectName)
+	err = cmd.Delete(cmd.objectName)
 	if err != nil {
 		return ExitCodeError, err
 	}
@@ -67,8 +67,30 @@ func (cmd *Delete) Run() (exitCode int, err error) {
 	return ExitCodeOK, nil
 }
 
-func (cmd *Delete) DeleteObject(path string) error {
+func (cmd *Delete) Delete(path string) error {
 	log := lib.GetLogInstance()
+
+	// 対象の情報を取得
+	s := NewCommand("stat", cmd.config, cmd.stdStream, cmd.errStream).(*Stat)
+	item, err := s.Stat(path)
+	if err != nil {
+		return err
+	}
+
+	_, isContainer := item.(*Container)
+
+	if isContainer {
+		// 配下のオブジェクト一覧を取得
+		l := NewCommand("list", cmd.config, cmd.stdStream, cmd.errStream).(*List)
+		list, err := l.List(path)
+		if err != nil {
+			return err
+		}
+
+		for i := 0; i < len(list); i++ {
+			cmd.Delete(path + "/" + list[i])
+		}
+	}
 
 	u, err := buildStorageUrl(cmd.config.EndPointUrl, path)
 	if err != nil {
