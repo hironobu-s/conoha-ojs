@@ -149,7 +149,7 @@ func (cmd *Stat) Run() (exitCode int, err error) {
 		return exitCode, err
 	}
 
-	item, err := cmd.StatObject(cmd.objectName)
+	item, err := cmd.Stat(cmd.objectName)
 	if err != nil {
 		return ExitCodeError, err
 	}
@@ -160,9 +160,9 @@ func (cmd *Stat) Run() (exitCode int, err error) {
 	return ExitCodeOK, nil
 }
 
-func (cmd *Stat) StatObject(path string) (item Item, err error) {
+func (cmd *Stat) Stat(path string) (item Item, err error) {
 
-	headers, err := cmd.statRequest(path)
+	headers, err := cmd.request(path)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,7 @@ func (cmd *Stat) populate(path string, headers map[string][]string) (item Item, 
 }
 
 // オブジェクトのヘッダー情報を取得する
-func (cmd *Stat) statRequest(path string) (headers map[string][]string, err error) {
+func (cmd *Stat) request(path string) (headers map[string][]string, err error) {
 	u, err := buildStorageUrl(cmd.config.EndPointUrl, path)
 	if err != nil {
 		return nil, err

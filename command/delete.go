@@ -75,7 +75,7 @@ func (cmd *Delete) DeleteObject(path string) error {
 		return err
 	}
 
-	err = cmd.deleteObject(u)
+	err = cmd.request(u)
 	if err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (cmd *Delete) DeleteObject(path string) error {
 	return nil
 }
 
-func (cmd *Delete) deleteObject(u *url.URL) error {
+func (cmd *Delete) request(u *url.URL) error {
 
 	req, err := http.NewRequest(
 		"DELETE",

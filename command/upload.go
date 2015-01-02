@@ -89,7 +89,7 @@ func (cmd *Upload) Run() (exitCode int, err error) {
 	}
 
 	for _, filename := range cmd.srcFiles {
-		err = cmd.uploadObject(filename)
+		err = cmd.request(filename)
 		if err != nil {
 			return ExitCodeError, err
 		}
@@ -115,7 +115,7 @@ func (cmd *Upload) detectContentType(filename string) (contentType string) {
 	return contentType
 }
 
-func (cmd *Upload) uploadObject(filename string) (err error) {
+func (cmd *Upload) request(filename string) (err error) {
 
 	// アップロードするファイルへのReaderを作成
 	file, err := os.OpenFile(filename, os.O_RDONLY, 0600)

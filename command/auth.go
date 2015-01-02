@@ -81,7 +81,7 @@ func (cmd *Auth) Run() (exitCode int, err error) {
 	c.ApiPassword = cmd.password
 	c.TenantName = cmd.tenantname
 
-	err = cmd.doAuth(c, c.ApiUsername, c.ApiPassword, c.TenantName)
+	err = cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantName)
 	if err == nil {
 		return ExitCodeOK, nil
 	} else {
@@ -123,11 +123,11 @@ func (cmd *Auth) CheckTokenIsExpired(c *lib.Config) error {
 		return nil
 	}
 
-	return cmd.doAuth(c, c.ApiUsername, c.ApiPassword, c.TenantName)
+	return cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantName)
 }
 
 // 認証を実行して、結果をConfigに書き込む
-func (cmd *Auth) doAuth(c *lib.Config, username string, password string, tenantname string) error {
+func (cmd *Auth) request(c *lib.Config, username string, password string, tenantname string) error {
 
 	// アカウント情報
 	auth := map[string]interface{}{

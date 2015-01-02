@@ -102,7 +102,7 @@ func (cmd *Download) DownloadObjects(path string) error {
 				return err
 			}
 
-			err = cmd.downloadObject(u)
+			err = cmd.request(u)
 			if err != nil {
 				return err
 			}
@@ -116,7 +116,7 @@ func (cmd *Download) DownloadObjects(path string) error {
 			return err
 		}
 
-		err = cmd.downloadObject(u)
+		err = cmd.request(u)
 		if err != nil {
 			return err
 		}
@@ -126,7 +126,7 @@ func (cmd *Download) DownloadObjects(path string) error {
 	return nil
 }
 
-func (cmd *Download) downloadObject(u *url.URL) error {
+func (cmd *Download) request(u *url.URL) error {
 
 	req, err := http.NewRequest(
 		"GET",
