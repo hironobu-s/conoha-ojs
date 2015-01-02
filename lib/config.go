@@ -61,7 +61,8 @@ func NewConfig() *Config {
 	config := new(Config)
 
 	// アカウント情報を読み込む
-	err := config.Read()
+	path := config.ConfigFilePath()
+	err := config.Read(path)
 	if err != nil {
 		// コンフィグファイルが読めなくてもwriteConfigFile()で上書きされるので無視して良い。
 	}
@@ -82,8 +83,7 @@ func (c *Config) ConfigFilePath() string {
 }
 
 // 設定ファイル(~/.conoha-ojs)を読み込む
-func (c *Config) Read() error {
-	path := c.ConfigFilePath()
+func (c *Config) Read(path string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -101,8 +101,8 @@ func (c *Config) Read() error {
 }
 
 // コンフィグをファイルに書き出す
-func (c *Config) Save() error {
-	file, err := os.Create(c.ConfigFilePath())
+func (c *Config) Save(path string) error {
+	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
