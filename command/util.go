@@ -5,27 +5,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/url"
-	"path/filepath"
 	"strings"
 )
-
-// 引数で渡された文字列を解決して、ローカルの絶対パスを返す
-func (cmd *Download) resolveLocalPath(paths ...string) (abspath string, err error) {
-
-	// 引数の文字列を連結してパスを作る
-	p := strings.Join(paths, string(filepath.Separator))
-
-	// 正規化する
-	p = filepath.Clean(p)
-
-	// 絶対パスを取得
-	abs, err := filepath.Abs(p)
-	if err != nil {
-		return "", err
-	}
-
-	return abs, nil
-}
 
 // 引数で渡された文字列を解決して、オブジェクトストレージのURIを返す
 func buildStorageUrl(endpointUrl string, paths ...string) (url *url.URL, err error) {
