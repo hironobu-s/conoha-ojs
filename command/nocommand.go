@@ -3,8 +3,6 @@ package command
 import (
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
-	flag "github.com/ogier/pflag"
-	"os"
 )
 
 type Nocommand struct {
@@ -13,23 +11,7 @@ type Nocommand struct {
 
 // コマンドライン引数を処理する
 func (cmd *Nocommand) parseFlags() (exitCode int, err error) {
-	var showVersion bool
-	fs := flag.NewFlagSet("conoha-ojs-nocommand", flag.ContinueOnError)
-	fs.BoolVar(&showVersion, "version", false, "Print version.")
-
-	err = fs.Parse(os.Args[1:])
-	if err != nil {
-		return ExitCodeParseFlagError, err
-	}
-
-	if showVersion {
-		return ExitCodeUsage, nil
-	}
 	return ExitCodeOK, nil
-}
-
-func (cmd *Nocommand) Version() {
-	fmt.Fprintf(cmd.errStream, "Version: %s\n", lib.VERSION)
 }
 
 // コマンドを実行して結果を出力する
@@ -54,6 +36,7 @@ Commands:
   download  Download objects from a container.
   delete    Delete a container or objects within a container.
   post      Update meta datas for the container.
+  version   Print version.
 
 `, lib.COMMAND_NAME)
 }
