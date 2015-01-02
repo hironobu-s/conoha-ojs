@@ -72,11 +72,5 @@ func run() (exitCode int, err error) {
 		}
 	}
 
-	// アカウント情報を書き出す
-	err = config.Save(config.ConfigFilePath())
-	if err != nil {
-		return command.ExitCodeError, err
-	}
-
 	return command.ExitCodeOK, nil
 }

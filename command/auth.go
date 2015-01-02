@@ -83,6 +83,12 @@ func (cmd *Auth) Run() (exitCode int, err error) {
 
 	err = cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantName)
 	if err == nil {
+		// アカウント情報を書き出す
+		err = c.Save(c.ConfigFilePath())
+		if err != nil {
+			return ExitCodeError, err
+		}
+
 		return ExitCodeOK, nil
 	} else {
 		return ExitCodeError, err
