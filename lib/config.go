@@ -47,16 +47,6 @@ func init() {
 	log.SetLevel(log.InfoLevel)
 }
 
-// Configのインスタンスを取得する(Singletonパターンのように)
-// var instance *Config
-
-// func GetInstance() *Config {
-// 	if instance == nil {
-// 		instance = NewConfig()
-// 	}
-// 	return instance
-// }
-
 func NewConfig() *Config {
 	config := new(Config)
 
@@ -107,6 +97,9 @@ func (c *Config) Save(path string) error {
 		return err
 	}
 	defer file.Close()
+
+	// パーミッションを0600に変更する
+	os.Chmod(path, 0600)
 
 	encoder := json.NewEncoder(file)
 	err = encoder.Encode(c)
