@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hironobu-s/conoha-ojs/lib"
+	"github.com/k0kubun/pp"
 	flag "github.com/ogier/pflag"
 	"io"
 	"net/http"
@@ -74,7 +75,7 @@ func (cmd *Download) Run() (exitCode int, err error) {
 		return exitCode, err
 	}
 
-	err = cmd.DownloadObjects(cmd.objectName)
+	err = cmd.DownloadObjects(cmd.objectName, cmd.destPath)
 	if err == nil {
 		return ExitCodeOK, nil
 	} else {
@@ -82,51 +83,51 @@ func (cmd *Download) Run() (exitCode int, err error) {
 	}
 }
 
-func (cmd *Download) DownloadObjects(path string) error {
+func (cmd *Download) DownloadObjects(srcpath string, destpath string) error {
 	log := lib.GetLogInstance()
 
-	// pathの末尾にワイルドカードがある場合はそれを処理
-	if strings.HasSuffix(path, "*") {
-		container := path[0 : len(path)-1]
+	// 対象の情報を取得
+	s := NewCommand("stat", cmd.config, cmd.stdStream, cmd.errStream).(*Stat)
+	item, err := s.Stat(srcpath)
+	if err != nil {
+		return err
+	}
 
+	_, isContainer := item.(*Container)
+
+	if isContainer {
 		// オブジェクトの一覧を取得
-		l := &List{Command: cmd.Command}
-		list, err := l.List(container)
+		l := NewCommand("list", cmd.config, cmd.stdStream, cmd.errStream).(*List)
+		list, err := l.List(srcpath)
 		if err != nil {
 			return err
 		}
 
 		for i := 0; i < len(list); i++ {
-			u, err := buildStorageUrl(cmd.config.EndPointUrl, container, list[i])
-			if err != nil {
-				return err
-			}
-
-			err = cmd.request(u)
-			if err != nil {
-				return err
-			}
-
-			log.Infof("%s download complete.", list[i])
+			cmd.DownloadObjects(srcpath+"/"+list[i], destpath)
 		}
 
 	} else {
-		u, err := buildStorageUrl(cmd.config.EndPointUrl, path)
+
+		log.Debugf("Downloading %s => %s", srcpath, destpath)
+
+		u, err := buildStorageUrl(cmd.config.EndPointUrl, srcpath)
 		if err != nil {
 			return err
 		}
 
-		err = cmd.request(u)
+		err = cmd.request(u, destpath)
 		if err != nil {
+			log.Infof("%s download error.", srcpath)
 			return err
 		}
-		log.Infof("%s download complete.", path)
+		log.Infof("%s download complete.", srcpath)
 	}
 
 	return nil
 }
 
-func (cmd *Download) request(u *url.URL) error {
+func (cmd *Download) request(u *url.URL, destpath string) error {
 
 	req, err := http.NewRequest(
 		"GET",
@@ -159,32 +160,58 @@ func (cmd *Download) request(u *url.URL) error {
 	}
 
 	// オブジェクト名と同じファイルをローカルに作成してBodyを書き込む
-	reader := bufio.NewReader(resp.Body)
-	basename := filepath.Base(u.Path)
-
-	var filename string
-	if cmd.destPath != "" {
-		filename, err = cmd.resolveLocalPath(cmd.destPath, basename)
-	} else {
-		filename, err = cmd.resolveLocalPath(basename)
-	}
+	_, err = cmd.store(resp.Body, u, destpath)
 	if err != nil {
 		return err
 	}
 
-	file, err := os.Create(filename)
+	return nil
+}
+
+// オブジェクトをファイルに保存する
+// 保存したサイズを返す
+func (cmd *Download) store(body io.ReadCloser, u *url.URL, destpath string) (written int64, err error) {
+
+	rawurl := u.String()
+
+	// オブジェクトを保存するローカルファイル名を決める
+	if !strings.Contains(rawurl, cmd.config.EndPointUrl) {
+		return -1, errors.New("Object URL dose not contain the EndPoint URL.")
+	}
+
+	// オブジェクトのURLからEndPointUrlの部分を削除して、基準のパスとする
+	path := strings.Replace(rawurl, cmd.config.EndPointUrl, "", 1)
+
+	// 保存先が引数で指定されている場合、そのパスを使う
+	path = destpath + string(filepath.Separator) + path
+
+	// パスを正規化する
+	path = filepath.Clean(path)
+
+	// パスとファイル名に分離
+	dir, _ := filepath.Split(path)
+
+	// ディレクトリが存在しない場合は作成する
+	_, err = os.Stat(dir)
 	if err != nil {
-		return err
+		// 0777 で作成しているがumaskが考慮されるため実際は0755などになる
+		err = os.MkdirAll(dir, 0777)
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return -1, err
 	}
 	defer file.Close()
 
+	// オブジェクトを保存
+	reader := bufio.NewReader(body)
 	writer := bufio.NewWriter(file)
-	_, err = io.Copy(writer, reader)
+	written, err = io.Copy(writer, reader)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	writer.Flush()
 
-	return nil
-
+	return written, nil
 }
