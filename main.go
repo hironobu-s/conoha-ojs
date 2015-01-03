@@ -56,6 +56,14 @@ func run() (exitCode int, err error) {
 			return exitCode, err
 		}
 
+	} else if command_name == "deauth" {
+		// 認証情報を削除
+		auth := command.NewCommand("deauth", config, stdStream, errStream)
+		exitCode, err = auth.Run()
+		if err != nil {
+			return exitCode, err
+		}
+
 	} else {
 		// 認証情報を更新
 		auth := command.NewCommand("auth", config, stdStream, errStream).(*command.Auth)
