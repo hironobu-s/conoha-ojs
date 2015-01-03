@@ -14,6 +14,34 @@
 4. 認証情報をファイルに保持します。コマンド実行の度に認証情報を設定する必要がありません
 5. 他のOpenStack Swiftで構築されたシステムに対しても動作するかもしれません
 
+## インストール
+
+### MacOSX
+
+ターミナルなどから以下のコマンドを実行します。
+
+```bash
+L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs/releases/download/v0.1/conoha-ojs-0.1.darwin.amd64.gz | zcat > $L && chmod +x $L
+```
+
+アンインストールする場合は/usr/local/bin/conoha-ojsを削除してください。
+
+### Linux
+
+ターミナルなどから以下のコマンドを実行します。/usr/local/binにインストールされるので、root権限が必要です。他のディレクトリにインストールする場合はL=/usr/local/bin/conoha-ojsの部分を適宜書き換えてください。
+
+```bash
+L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs/releases/download/v0.1/conoha-ojs-0.1.linux.386.gz | zcat > $L && chmod +x $L
+```
+
+アンインストールする場合は/usr/local/bin/conoha-ojsを削除してください。
+
+### Windows
+
+[ZIPファイル](https://github.com/hironobu-s/conoha-ojs/releases/download/v0.1/conoha-ojs-0.1.zip)をダウンロードして、適当なフォルダに展開します。
+
+アンインストールする場合はファイルをゴミ箱に入れてください。
+
 ## ビルド方法
 
 自分でビルドする場合は以下のようにします。Goの実行環境が用意されていることが前提になります。
