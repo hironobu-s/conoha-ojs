@@ -14,6 +14,16 @@
 4. 認証情報をファイルに保持します。コマンド実行の度に認証情報を設定する必要がありません
 5. 他のOpenStack Swiftで構築されたシステムに対しても動作するかもしれません
 
+## How to build
+
+自分でビルドする場合は以下のようにします。Goの実行環境が用意されていることが前提になります。
+
+```bash
+$ git clone https://github.com/hironobu-s/conoha-ojs
+$ cd conoha-ojs
+$ go build -o conoha-ojs
+```
+
 ## Usage
 
 コマンド名(conoha-ojs)に続き、サブコマンドを指定します。
