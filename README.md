@@ -68,7 +68,9 @@ Commands:
   upload    Upload files or directories to a container.
   download  Download objects from a container.
   delete    Delete a container or objects within a container.
-  post      Update meta datas for the container.
+  post      Update meta datas for the container or objects;
+            create containers if not present.
+  deauth    Remove an authentication file (~/.conoha-ojs) from a local machine.
   version   Print version.
 ```
 
@@ -159,6 +161,14 @@ $ conoha-ojs post -r ".r:*,.rlistings" <container>
 コンテナに対する書き込み権限を設定するには-wオプションを使います。ただしConoHaオブジェクトストレージはユーザを一つしか作成できません。このオプションは機能しますが、今のところ意味がありません。
 ```bash
 $ conoha-ojs post -w "account1 account2" <container>
+```
+
+## deauth 
+
+conoha-ojsが作成した設定ファイルを削除します。設定ファイルにはオブジェクトストレージの認証情報が記録されていますが、必要に応じてこのサブコマンドで削除することができます。再びconoha-ojsを使う場合は、authサブコマンドを使って認証を行ってください。
+
+```bash
+$ conoha-ojs deauth
 ```
 
 ## version
