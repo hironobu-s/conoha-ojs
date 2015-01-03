@@ -151,4 +151,4 @@ $ conoha-ojs version
 
 # License
 
-MTI License
+MIT License
