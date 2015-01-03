@@ -35,8 +35,9 @@ Commands:
   upload    Upload files or directories to a container.
   download  Download objects from a container.
   delete    Delete a container or objects within a container.
-  post      Update meta datas for the container.
-  deauth    Remove an authentication file (~/.conoha-ojs) from local machine.
+  post      Update meta datas for the container or objects;
+            create containers if not present.
+  deauth    Remove an authentication file (~/.conoha-ojs) from a local machine.
   version   Print version.
 
 `, lib.COMMAND_NAME)
