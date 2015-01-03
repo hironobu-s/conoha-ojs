@@ -58,6 +58,8 @@ func NewCommand(action string, config *lib.Config, stdStream io.Writer, errStrea
 		cmd = &Post{Command: command}
 	case "delete":
 		cmd = &Delete{Command: command}
+	case "deauth":
+		cmd = &Deauth{Command: command}
 	case "version":
 		cmd = &Version{Command: command}
 	default:

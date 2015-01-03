@@ -36,6 +36,7 @@ Commands:
   download  Download objects from a container.
   delete    Delete a container or objects within a container.
   post      Update meta datas for the container.
+  deauth    Remove an authentication file (~/.conoha-ojs) from local machine.
   version   Print version.
 
 `, lib.COMMAND_NAME)
