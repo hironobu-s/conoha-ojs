@@ -112,7 +112,7 @@ $ conoha-ojs stat <container or object>
 一つ目の引数はアップロード先のコンテナです。二つ目以降の引数にアップロードするファイルを複数指定できます。
 
 ```bash
-$ conoha-ojs upload <container> <file or directory>...
+$ conoha-ojs upload <container> <file>...
 ```
 
 ワイルドカードも指定できます
