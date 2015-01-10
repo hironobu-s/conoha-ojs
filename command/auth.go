@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hironobu-s/conoha-ojs/lib"
+	"../lib"
 	"io/ioutil"
 	"net/http"
 	"os"

@@ -3,7 +3,7 @@ package command
 import (
 	"errors"
 	"fmt"
-	"github.com/hironobu-s/conoha-ojs/lib"
+	"../lib"
 	"mime"
 	"net/http"
 	"os"
@@ -111,7 +111,62 @@ func (cmd *Upload) detectContentType(filename string) (contentType string) {
 	return contentType
 }
 
-func (cmd *Upload) request(filename string) (err error) {
+func (cmd *Upload) request(pathname string) (err error) {
+
+	// ディレクトリ走査する
+	return filepath.Walk(pathname,
+		func(path string, info os.FileInfo, err error) error {
+			if info.IsDir() {
+				return cmd.request_dir(path)
+			} else {
+				return cmd.request_file(path)
+			}
+		})
+}
+
+func (cmd *Upload) request_dir(dirname string) (err error) {
+
+        // アップロード先のURIを準備
+        uri, err := buildStorageUrl(cmd.config.EndPointUrl, cmd.destContainer, dirname)
+        if err != nil {
+                return err
+        }
+
+        // PUTリクエストを作成
+        req, err := http.NewRequest("PUT", uri.String(), nil)
+        if err != nil {
+                return err
+        }
+
+        req.Header.Set("Content-type", "application/directory")
+        req.Header.Set("X-Auth-Token", cmd.config.Token)
+
+        // リクエストを実行
+        client := &http.Client{}
+        resp, err := client.Do(req)
+        if err != nil {
+                return err
+        }
+
+        switch {
+        case resp.StatusCode == 404:
+                return errors.New("Container was not found.")
+
+        case resp.StatusCode >= 400:
+                msg := fmt.Sprintf("Return %d status code from the server with message. [%s].",
+                        resp.StatusCode,
+                        extractErrorMessage(resp.Body),
+                )
+                return errors.New(msg)
+        }
+
+        log := lib.GetLogInstance()
+        log.Infof("%s directory created.", dirname)
+
+        return nil
+}
+
+func (cmd *Upload) request_file(filename string) (err error) {
 
 	// アップロードするファイルへのReaderを作成
 	file, err := os.OpenFile(filename, os.O_RDONLY, 0600)
