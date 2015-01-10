@@ -1,7 +1,7 @@
 package command
 
 import (
-	"github.com/hironobu-s/conoha-ojs/lib"
+	"../lib"
 	"io"
 )
 

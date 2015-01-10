@@ -2,7 +2,7 @@ package command
 
 import (
 	"fmt"
-	"github.com/hironobu-s/conoha-ojs/lib"
+	"../lib"
 )
 
 type Version struct {

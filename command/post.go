@@ -10,7 +10,7 @@ package command
 import (
 	"errors"
 	"fmt"
-	"github.com/hironobu-s/conoha-ojs/lib"
+	"../lib"
 	flag "github.com/ogier/pflag"
 	"net/http"
 	"net/url"

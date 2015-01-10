@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/hironobu-s/conoha-ojs/command"
-	"github.com/hironobu-s/conoha-ojs/lib"
+	"./command"
+	"./lib"
 	"os"
 )
 
