@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	AUTH_URL = "https://ident-r1nd1001.cnode.jp/v2.0"
+	DEFAULT_AUTH_URL = "https://ident-r1nd1001.cnode.jp/v2.0"
 )
 
 type Auth struct {
@@ -24,6 +24,7 @@ type Auth struct {
 	username   string
 	password   string
 	tenantname string
+	authUrl    string
 }
 
 // コマンドライン引数を処理して返す
@@ -36,6 +37,7 @@ func (cmd *Auth) parseFlags() (exitCode int, err error) {
 	fs.BoolVarP(&showUsage, "help", "h", false, "Print usage.")
 	fs.StringVarP(&cmd.username, "api-username", "u", "", "API Username")
 	fs.StringVarP(&cmd.password, "api-password", "p", "", "API Password")
+	fs.StringVarP(&cmd.authUrl, "auth-url", "a", "", "Auth URL")
 
 	err = fs.Parse(os.Args[2:])
 	if err != nil {
@@ -54,6 +56,11 @@ func (cmd *Auth) parseFlags() (exitCode int, err error) {
 	// ユーザ名とテナント名は同じ
 	cmd.tenantname = cmd.username
 
+	// 認証URLの指定が内場合はデフォルトを使用
+	if cmd.authUrl == "" {
+		cmd.authUrl = DEFAULT_AUTH_URL
+	}
+
 	return ExitCodeOK, nil
 }
 
@@ -64,6 +71,8 @@ Authenticate to ConoHa ObjectStorage.
 
   -u, --api-username: API Username
   -p: --api-password: API Password
+  -a: --auth-url    : Auth URL(Optional)
+                      If not set, it will be used ConoHa Auth URL.
 
 `, lib.COMMAND_NAME)
 }
@@ -151,9 +160,10 @@ func (cmd *Auth) request(c *lib.Config, username string, password string, tenant
 		return err
 	}
 
+	// 認証URL
 	req, err := http.NewRequest(
 		"POST",
-		AUTH_URL+"/tokens",
+		cmd.authUrl+"/tokens",
 		strings.NewReader(string(b)),
 	)
 
