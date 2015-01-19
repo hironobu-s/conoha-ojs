@@ -83,7 +83,7 @@ Commands:
 > **NOTE:** APIユーザ名とパスワードなどをファイルに保持します。ファイルはホームディレクトリの.conoha-ojsで、パーミッションは0600です。
 
 ```bash
-$ conoha-ojs auth -u "api-username" -p "******"
+$ conoha-ojs auth -u "api-username" -p "******" -t "tenant-id"
 ```
 
 
