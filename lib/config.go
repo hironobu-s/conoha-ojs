@@ -11,7 +11,7 @@ import (
 const (
 	CONFIGFILE   = ".conoha-ojs"
 	COMMAND_NAME = "conoha-ojs"
-	VERSION      = "v20150120.1"
+	VERSION      = "v20150120.2"
 )
 
 // コンフィグ
