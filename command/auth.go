@@ -21,10 +21,10 @@ const (
 type Auth struct {
 	*Command
 
-	username   string
-	password   string
-	tenantname string
-	authUrl    string
+	username string
+	password string
+	authUrl  string
+	tenantId string
 }
 
 // コマンドライン引数を処理して返す
@@ -38,6 +38,7 @@ func (cmd *Auth) parseFlags() (exitCode int, err error) {
 	fs.StringVarP(&cmd.username, "api-username", "u", "", "API Username")
 	fs.StringVarP(&cmd.password, "api-password", "p", "", "API Password")
 	fs.StringVarP(&cmd.authUrl, "auth-url", "a", "", "Auth URL")
+	fs.StringVarP(&cmd.tenantId, "tenant-id", "t", "", "Tenant ID")
 
 	err = fs.Parse(os.Args[2:])
 	if err != nil {
@@ -53,12 +54,14 @@ func (cmd *Auth) parseFlags() (exitCode int, err error) {
 		return ExitCodeParseFlagError, errors.New("Not enough arguments.")
 	}
 
-	// ユーザ名とテナント名は同じ
-	cmd.tenantname = cmd.username
-
-	// 認証URLの指定が内場合はデフォルトを使用
+	// 認証URLの指定がない場合はデフォルトを使用
 	if cmd.authUrl == "" {
 		cmd.authUrl = DEFAULT_AUTH_URL
+	}
+
+	// 末尾のURLを削除する
+	if strings.HasSuffix(cmd.authUrl, "/") {
+		cmd.authUrl = cmd.authUrl[0 : len(cmd.authUrl)-1]
 	}
 
 	return ExitCodeOK, nil
@@ -70,9 +73,13 @@ func (cmd *Auth) Usage() {
 Authenticate to ConoHa ObjectStorage.
 
   -u, --api-username: API Username
+
   -p: --api-password: API Password
-  -a: --auth-url    : Auth URL(Optional)
-                      If not set, it will be used ConoHa Auth URL.
+
+  -t: --tenant-id:    Tenant ID
+
+  -a: --auth-url:     Auth URL(Optional)
+                      If not set, it will be used ConoHa Auth URL(https://ident-r1nd1001.cnode.jp/v2.0).
 
 `, lib.COMMAND_NAME)
 }
@@ -88,9 +95,9 @@ func (cmd *Auth) Run() (exitCode int, err error) {
 	var c = cmd.config
 	c.ApiUsername = cmd.username
 	c.ApiPassword = cmd.password
-	c.TenantName = cmd.tenantname
+	c.TenantId = cmd.tenantId
 
-	err = cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantName)
+	err = cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantId)
 	if err == nil {
 		// アカウント情報を書き出す
 		err = c.Save(c.ConfigFilePath())
@@ -111,8 +118,8 @@ func (cmd *Auth) CheckTokenIsExpired(c *lib.Config) error {
 	log := lib.GetLogInstance()
 
 	// configでユーザ名などが空の場合は先に認証(authコマンド)を実行してくださいと返す
-	if c.ApiUsername == "" || c.ApiPassword == "" || c.TenantName == "" {
-		err := errors.New("ApiUsername, Apipassword and Tenantname was not found in a config file. You should execute an auth command. (See \"conoha-ojs auth\").")
+	if c.ApiUsername == "" || c.ApiPassword == "" || c.TenantId == "" {
+		err := errors.New("ApiUsername, Apipassword and TenantID was not found in a config file. You should execute an auth command. (See \"conoha-ojs auth\").")
 		return err
 	}
 
@@ -138,16 +145,16 @@ func (cmd *Auth) CheckTokenIsExpired(c *lib.Config) error {
 		return nil
 	}
 
-	return cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantName)
+	return cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantId)
 }
 
 // 認証を実行して、結果をConfigに書き込む
-func (cmd *Auth) request(c *lib.Config, username string, password string, tenantname string) error {
+func (cmd *Auth) request(c *lib.Config, username string, password string, tenantId string) error {
 
 	// アカウント情報
 	auth := map[string]interface{}{
 		"auth": map[string]interface{}{
-			"tenantName": tenantname,
+			"tenantId": tenantId,
 			"passwordCredentials": map[string]interface{}{
 				"username": username,
 				"password": password,
@@ -249,17 +256,14 @@ func (cmd *Auth) parseResponse(strjson []byte, config *lib.Config) error {
 		return err
 	}
 
-	// テナントIDを取得
-	tenant := t["tenant"].(map[string]interface{})
-	tenantId := tenant["id"].(string)
-
 	// エンドポイントURLを取得
 	var endpointUrl string
-
 	if _, ok = access["serviceCatalog"]; !ok {
-		err = errors.New("Undefined index: serviceCatalog")
+		// ServiceCatalog特定できない場合は、仕方ないのでエラー
+		err = errors.New("the Keystone don't serve the Service Catalog.")
 		return err
 	}
+
 	catalogs := access["serviceCatalog"].([]interface{})
 
 	for _, item := range catalogs {
@@ -282,7 +286,6 @@ func (cmd *Auth) parseResponse(strjson []byte, config *lib.Config) error {
 	config.Token = token
 	config.TokenExpires = tokenExpires.Format(time.RFC1123)
 	config.EndPointUrl = endpointUrl
-	config.TenantId = tenantId
 
 	return nil
 }

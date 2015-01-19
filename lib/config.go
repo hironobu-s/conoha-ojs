@@ -29,7 +29,6 @@ type Config struct {
 	ApiUsername string
 	ApiPassword string
 	TenantId    string
-	TenantName  string
 	EndPointUrl string
 }
 
