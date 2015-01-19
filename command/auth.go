@@ -50,7 +50,7 @@ func (cmd *Auth) parseFlags() (exitCode int, err error) {
 	}
 
 	// ユーザ名、パスワードを未指定の場合はUsageを表示して終了
-	if cmd.username == "" || cmd.password == "" {
+	if cmd.username == "" || cmd.password == "" || cmd.tenantId == "" {
 		return ExitCodeParseFlagError, errors.New("Not enough arguments.")
 	}
 
