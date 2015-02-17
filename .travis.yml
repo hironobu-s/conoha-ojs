@@ -1,6 +1,7 @@
 language: go
 before_install:
   - go get github.com/ogier/pflag
+  - go get github.com/mitchellh/gox
   - go get github.com/Sirupsen/logrus
   - gox -build-toolchain -osarch="darwin/amd64 linux/amd64 windows/amd64"
 
