@@ -9,7 +9,7 @@ script: make
 deploy:
   provider: releases
   api_key:
-    secure: Z55l9blwOv870mSOatQIKDkKL8UMBfuvTOj+RYyPC80W+IoAspomgS9yK2dHwcWoR2n2M5WwCLRcKYqQu5UHpqeGr4LnmlhyeWoA0fbRqYq+4IRG/xC6qfp99r9NTKjW9GHz7ThRiJBTrYbVve5Rc8wnD9SmAr5zSXufMseo/KU=
+    secure: YPVEUZwlv4JugC6QF99CiH91SuXXmKRZJygEWSP/OK82f+rb17Bj0v+CvLi9pyTE0zG08AJkBQgK8J04D5JeD2aGPduw9WMreoXB4mQ95z94VLILUiXPQVV31kZTE7+jby+RZoOQ1N593YvrmBv00ijcGGB1NyTz0Qas2vPfZ+c=
   file:
     - bin/windows/conoha-ojs.windows.amd64.zip
     - bin/darwin/conoha-ojs.osx.amd64.gz
