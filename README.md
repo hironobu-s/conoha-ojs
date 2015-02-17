@@ -21,7 +21,7 @@
 ターミナルなどから以下のコマンドを実行します。
 
 ```bash
-L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs/releases/download/v20150120.2/conoha-ojs.darwin.amd64.gz | zcat > $L && chmod +x $L
+L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs/releases/download/v20150217.1/conoha-ojs-osx.amd64.gz | zcat > $L && chmod +x $L
 ```
 
 アンインストールする場合は/usr/local/bin/conoha-ojsを削除してください。
@@ -31,14 +31,14 @@ L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs
 ターミナルなどから以下のコマンドを実行します。/usr/local/binにインストールされるので、root権限が必要です。他のディレクトリにインストールする場合はL=/usr/local/bin/conoha-ojsの部分を適宜書き換えてください。
 
 ```bash
-L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs/releases/download/v20150120.2/conoha-ojs.linux.386.gz | zcat > $L && chmod +x $L
+L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs/releases/download/v20150217.1/conoha-ojs-linux.amd64.gz | zcat > $L && chmod +x $L
 ```
 
 アンインストールする場合は/usr/local/bin/conoha-ojsを削除してください。
 
 ### Windows
 
-[ZIPファイル](https://github.com/hironobu-s/conoha-ojs/releases/download/v20150120.2/conoha-ojs.zip)をダウンロードして、適当なフォルダに展開します。
+[ZIPファイル](https://github.com/hironobu-s/conoha-ojs/releases/download/v20150217.1/conoha-ojs.amd64.zip)をダウンロードして、適当なフォルダに展開します。
 
 アンインストールする場合はファイルをゴミ箱に入れてください。
 
