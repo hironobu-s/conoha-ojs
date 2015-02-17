@@ -8,10 +8,11 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+var Version string
+
 const (
 	CONFIGFILE   = ".conoha-ojs"
 	COMMAND_NAME = "conoha-ojs"
-	VERSION      = "v20150120.2"
 )
 
 // コンフィグ

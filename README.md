@@ -1,5 +1,7 @@
 # CLI-tool for ConoHa Object Storage.
 
+[![Build Status](https://travis-ci.org/hironobu-s/conoha-ojs.svg?branch=travis-test)](https://travis-ci.org/hironobu-s/conoha-ojs)
+
 [ConoHaオブジェクトストレージ](https://www.conoha.jp/)を操作するためのCLIツールです。ConoHaオブジェクトストレージで使える機能を一通りサポートしています。
 
 ## API
