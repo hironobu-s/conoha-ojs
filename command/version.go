@@ -24,5 +24,5 @@ func (cmd *Version) Run() (exitCode int, err error) {
 }
 
 func (cmd *Version) Usage() {
-	fmt.Fprintf(cmd.errStream, "Version: %s\n", lib.VERSION)
+	fmt.Fprintf(cmd.errStream, "Version: %s\n", lib.Version)
 }
