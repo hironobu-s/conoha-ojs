@@ -2,8 +2,9 @@ package lib
 
 import (
 	"encoding/json"
+	"github.com/mitchellh/go-homedir"
 	"os"
-	"os/user"
+	"path/filepath"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -51,7 +52,8 @@ func NewConfig() *Config {
 	config := new(Config)
 
 	// アカウント情報を読み込む
-	path := config.ConfigFilePath()
+	path, _ := config.ConfigFilePath()
+
 	err := config.Read(path)
 	if err != nil {
 		// コンフィグファイルが読めなくてもwriteConfigFile()で上書きされるので無視して良い。
@@ -62,14 +64,13 @@ func NewConfig() *Config {
 
 // アカウント情報ファイルのパスを返す
 // 基本的には、ホームディレクトリの.conoha-ojsというファイルになる
-func (c *Config) ConfigFilePath() string {
-	u, err := user.Current()
-	if err == nil {
-		return u.HomeDir + string(os.PathSeparator) + CONFIGFILE
-	} else {
-		// ここに来ることはなさそうだが、その場合はカレントディレクトリを決め打ちする
-		return ".conoha-ojs"
+func (c *Config) ConfigFilePath() (string, error) {
+	homedir, err := homedir.Dir()
+	if err != nil {
+		return "", err
 	}
+
+	return homedir + string(filepath.Separator) + CONFIGFILE, nil
 }
 
 // 設定ファイル(~/.conoha-ojs)を読み込む

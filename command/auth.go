@@ -100,7 +100,12 @@ func (cmd *Auth) Run() (exitCode int, err error) {
 	err = cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantId)
 	if err == nil {
 		// アカウント情報を書き出す
-		err = c.Save(c.ConfigFilePath())
+		path, err := c.ConfigFilePath()
+		if err != nil {
+			return ExitCodeError, err
+		}
+
+		err = c.Save(path)
 		if err != nil {
 			return ExitCodeError, err
 		}

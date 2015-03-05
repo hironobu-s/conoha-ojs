@@ -23,7 +23,10 @@ func (cmd *Deauth) Run() (exitCode int, err error) {
 		return ExitCodeParseFlagError, err
 	}
 
-	path := cmd.config.ConfigFilePath()
+	path, err := cmd.config.ConfigFilePath()
+	if err != nil {
+		return ExitCodeError, err
+	}
 
 	fi, _ := os.Stat(path)
 	if fi != nil {
