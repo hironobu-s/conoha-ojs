@@ -31,7 +31,10 @@ func TestNewConfig(t *testing.T) {
 func TestConfigFilePath(t *testing.T) {
 	c := NewConfig()
 
-	path := c.ConfigFilePath()
+	path, err := c.ConfigFilePath()
+	if err != nil {
+		t.Errorf("wrong directory")
+	}
 
 	dir, file := filepath.Split(path)
 
