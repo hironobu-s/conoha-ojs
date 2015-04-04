@@ -150,6 +150,11 @@ func (cmd *Auth) CheckTokenIsExpired(c *lib.Config) error {
 		return nil
 	}
 
+	// 認証URLの指定がない場合はデフォルトを使用
+	if cmd.authUrl == "" {
+		cmd.authUrl = DEFAULT_AUTH_URL
+	}
+
 	return cmd.request(c, c.ApiUsername, c.ApiPassword, c.TenantId)
 }
 
