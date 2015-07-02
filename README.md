@@ -51,7 +51,7 @@ L=/usr/local/bin/conoha-ojs && curl -sL https://github.com/hironobu-s/conoha-ojs
 ```bash
 $ git clone https://github.com/hironobu-s/conoha-ojs
 $ cd conoha-ojs
-$ go build -o conoha-ojs
+$ make
 ```
 
 ## 使い方
