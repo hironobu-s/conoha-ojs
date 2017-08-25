@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	DEFAULT_AUTH_URL = "https://ident-r1nd1001.cnode.jp/v2.0"
+	DEFAULT_AUTH_URL = "https://identity.tyo1.conoha.io/v2.0"
 )
 
 type Auth struct {
@@ -79,9 +79,9 @@ Authenticate to ConoHa ObjectStorage.
   -t: --tenant-id:    Tenant ID
 
   -a: --auth-url:     Auth URL(Optional)
-                      If not set, it will be used ConoHa Auth URL(https://ident-r1nd1001.cnode.jp/v2.0).
+                      If not set, it will be used ConoHa Auth URL(%s).
 
-`, lib.COMMAND_NAME)
+`, lib.COMMAND_NAME, DEFAULT_AUTH_URL)
 }
 
 func (cmd *Auth) Run() (exitCode int, err error) {
