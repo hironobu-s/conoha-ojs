@@ -2,7 +2,7 @@ VERSION=$(shell cat VERSION)
 NAME=conoha-ojs
 BINDIR=bin
 GOARCH=amd64
-GOFLAGS=-ldflags "-X github.com/hironobu-s/conoha-ojs/lib.Version $(VERSION)"
+GOFLAGS=-ldflags "-X github.com/hironobu-s/conoha-ojs/lib.Version=$(VERSION)"
 
 all: clean windows darwin linux
 
