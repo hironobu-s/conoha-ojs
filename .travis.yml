@@ -4,7 +4,7 @@ before_install:
   - go get github.com/mitchellh/gox
   - go get github.com/Sirupsen/logrus
   - go get github.com/mitchellh/go-homedir
-  - gox -build-toolchain -osarch="darwin/amd64 linux/amd64 windows/amd64"
+  - gox -osarch="darwin/amd64 linux/amd64 windows/amd64"
 
 script: make
 deploy:
